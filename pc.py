@@ -74,7 +74,6 @@ class Final():
 
         
     def on_message(self,client, userdata, message, details = False):
-        #print(f'{message.topic}:{message.payload.decode("utf-8")}')
         if message.topic =='arena':
             f = open("arena.png", "wb")
             f.write(message.payload)
