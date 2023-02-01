@@ -7,6 +7,7 @@ import socket
 import paho.mqtt.client as mqtt
 import sys
 import os
+import numpy as np
 
 class Final():
 
@@ -23,6 +24,8 @@ class Final():
         self.flag = False
         self.points = 0
         self.speed = 'M'
+        self.map = np.zeros((6,8), dtype=int)
+        self.green_locations = []
         #self.pico = pico.Pico()
         self.pc2main = threading.Thread(target=self.mqqt_send)
         self.main2pc = threading.Thread(target=self.mqqt_recieve)
@@ -90,8 +93,6 @@ class Final():
                 except SystemExit:
                     os._exit(0)
 
-
-
     def mqqt_recieve(self):
         broker_add = '144.122.143.29' # broker ip 
         stats_topic = 'stats' # topic to update aruco coords
@@ -102,12 +103,23 @@ class Final():
         self.client = mqtt.Client(f"{self.client_name}") #create new instance
         self.client.on_log=self.on_log
         self.client.on_message=self.on_message        #attach function to callback
-        self.waitwait()
         
         while True:
             if "/arena":
                 self.arena = arena.ArenaFinder()
                 self.grid = self.arena()
+                for color, cells in self.grid.items():
+                    if color == "blue":
+                        cell_value = 1
+                    elif color == "yellow":
+                        cell_value = 2
+                    elif color == "red":
+                        cell_value = -1
+                    elif color == "green":
+                        self.green_locations.append(cells)
+                        cell_value = 3
+                    for row, col in cells:
+                        self.map[row][col] = cell_value
                 print(self.grid)
 
             if "/config":
@@ -207,4 +219,5 @@ class Final():
             break
 
 if __name__ == "__main__":
-    Final()
+    final = Final()
+    path_finder(final.map, final.ally_pos, final.enemy_pos, final.role)
