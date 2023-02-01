@@ -24,14 +24,24 @@ class Final():
         self.points = 0
         self.speed = 'M'
         #self.pico = pico.Pico()
+
+        broker_add = '144.122.143.29'
+
+        self.client = mqtt.Client(f"{self.client_name}")
+        self.client.on_message=self.on_message
+
+        self.client.connect(broker_add) #connect to broker
+        self.client.loop_start() #start the loop
+        self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0)])
+
         self.pc2main = threading.Thread(target=self.mqqt_send)
-        self.main2pc = threading.Thread(target=self.mqqt_recieve)
+       # self.main2pc = threading.Thread(target=self.mqqt_recieve)
         self.pc2pico = threading.Thread(target=self.socket_send)
         self.pc2main.start()
-        self.main2pc.start()
+        #self.main2pc.start()
         self.pc2pico.start()
         self.pc2main.join()
-        self.main2pc.join()
+        #self.main2pc.join()
         self.pc2pico.join()
 
     def socket_send(self):
@@ -52,22 +62,19 @@ class Final():
     def mqqt_send(self):
         while True:
             if self.flag:
-            #if "/robotsay":
                 self.green_left = self.green_timeout - (time.time() - self.green_last)
                 if self.green_left < 0:
                     self.green_left = 0
 
                 list_send = f"[{self.id}, {self.role}, {self.speed}, {self.points}, (3,2), (3,3), {self.green_left}]"
+                self.client.publish("robotsay", list_send)
                 #print(list_send)
-                #b = eval(f"[{self.id}, {self.role}, {self.speed}, {self.points}, (3,2), (3,3), {time.time() - self.green_last}]")
-            break
+                time.sleep(0.2)
+                break
 
-    def on_log(self,client, userdata, level, buf):
-        print("log: ",buf)
         
     def on_message(self,client, userdata, message, details = False):
         #print(f'{message.topic}:{message.payload.decode("utf-8")}')
-        print("incoming")
         if message.topic =='arena':
             f = open("arena.png", "wb")
             f.write(message.payload)
@@ -172,28 +179,6 @@ class Final():
                     self.enemy_pos.append([pos,data["ID"]])
 
             self.flag = True
-
-
-    def mqqt_recieve(self):
-        broker_add = '144.122.143.29' # broker ip 
-
-        self.client = mqtt.Client(f"{self.client_name}") #create new instance
-        self.client.on_log=self.on_log
-        self.client.on_message=self.on_message        #attach function to callback
-
-        self.client.connect(broker_add) #connect to broker
-        self.client.loop_start() #start the loop
-        self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0)])
-        while True:
-            try:
-                time.sleep(4)
-            except KeyboardInterrupt:
-                print('\n no more listening \n bye')
-                self.client.disconnect()
-                try:
-                    sys.exit(0)
-                except SystemExit:
-                    os._exit(0)
 
 
 if __name__ == "__main__":
