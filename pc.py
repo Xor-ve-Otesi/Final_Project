@@ -7,6 +7,7 @@ import socket
 import paho.mqtt.client as mqtt
 import sys
 import os
+import numpy as np
 
 class Final():
 
@@ -23,6 +24,8 @@ class Final():
         self.flag = False
         self.points = 0
         self.speed = 'M'
+        self.map = np.zeros((6,8), dtype=int)
+        self.green_locations = []
         #self.pico = pico.Pico()
 
         broker_add = '144.122.143.29'
@@ -181,4 +184,5 @@ class Final():
 
 
 if __name__ == "__main__":
-    Final()
+    final = Final()
+    path_finder(final.map, final.ally_pos, final.enemy_pos, final.role)
