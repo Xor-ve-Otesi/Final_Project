@@ -72,6 +72,10 @@ class Pico():
                     self.ena_1.duty_u16(int(self.speed / 100 * 65536))
                     self.ena_2.duty_u16(int(self.speed / 100 * 65536))
 
+                else:
+                    self.stop_1()
+                    self.stop_2()
+
                 if self.role:
                     self.green_led.value(1)
                     self.red_led.value(0)
