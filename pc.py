@@ -37,6 +37,16 @@ class Final():
         self.client.loop_start() #start the loop
         self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0)])
 
+
+        broker_add = '144.122.143.29'
+
+        self.client = mqtt.Client(f"{self.client_name}")
+        self.client.on_message=self.on_message
+
+        self.client.connect(broker_add) #connect to broker
+        self.client.loop_start() #start the loop
+        self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0)])
+
         self.pc2main = threading.Thread(target=self.mqqt_send)
        # self.main2pc = threading.Thread(target=self.mqqt_recieve)
         self.pc2pico = threading.Thread(target=self.socket_send)
@@ -85,7 +95,18 @@ class Final():
             f.close()
             self.arena = arena.ArenaFinder()
             self.grid = self.arena()
-            print(self.grid)
+            for color, cells in self.grid.items():
+                if color == "blue":
+                    cell_value = 1
+                elif color == "yellow":
+                    cell_value = 2
+                elif color == "red":
+                    cell_value = -1
+                elif color == "green":
+                    self.green_locations.append(cells)
+                    cell_value = 3
+                for row, col in cells:
+                    self.map[row][col] = cell_value
 
         if message.topic =='config':
             print(message.topic)
