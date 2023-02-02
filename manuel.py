@@ -5,13 +5,13 @@ from ui import Ui_MainWindow
 import socket
 from time import sleep
 
-# addr = socket.getaddrinfo("192.168.61.141", 1235)[0][-1]
-# ServerSideSocket = socket.socket()
-# ServerSideSocket.bind(addr)
-# ServerSideSocket.listen(5)
-# conn, address = ServerSideSocket.accept()  # accept new connection
+addr = socket.getaddrinfo("192.168.61.141", 1235)[0][-1]
+ServerSideSocket = socket.socket()
+ServerSideSocket.bind(addr)
+ServerSideSocket.listen(5)
+conn, address = ServerSideSocket.accept()  # accept new connection
 
-# Step 1: Create a worker class
+Step 1: Create a worker class
 class Worker(QObject):
     progress = pyqtSignal(int)
 
@@ -105,7 +105,7 @@ class Lab4():
         self.thread.start()
 
     def reportProgress(self,num):
-        #conn.sendall(f"{self.motor_speed_1},{self.motor_speed_2}".encode())
+        conn.sendall(f"0,{self.motor_speed_1},{self.motor_speed_2},0".encode())
         print(f"0,{self.motor_speed_1},{self.motor_speed_2},0")
 
 if __name__ == "__main__":
