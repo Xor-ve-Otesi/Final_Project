@@ -30,7 +30,6 @@ class Pico():
 
         # MOTOR 2
         self.ena_2 = PWM(Pin(5, Pin.OUT))
-
         self.ena_2.duty_u16(0)
         self.ena_2.freq(1000)
         self.in1_2 = Pin(3, Pin.OUT)
@@ -44,6 +43,7 @@ class Pico():
 
         self.cl = socket.socket()
         self.cl.connect(addr)
+        old_data = ""
 
         while True:
             time.sleep(0.2)
@@ -52,11 +52,10 @@ class Pico():
 
             if old_data != data:
                 data = data.split(",")
-                print(data)
                 self.direction = int(data[0])
                 self.speed1 = int(data[1])
-                self.speed2 = int(data[1])
-                self.role = int(data[2])
+                self.speed2 = int(data[2])
+                self.role = int(data[3])
                 if int(self.direction) == 90:
                     self.backward_1()
                     self.forward_2()
@@ -86,15 +85,15 @@ class Pico():
                     self.stop_2()
 
                 if self.role:
-                    for led in self.LED_G:
+                    for led in self.green_led:
                         led.on()    
-                    for led in self.LED_R:
+                    for led in self.green_red:
                         led.off()
 
                 else:
-                    for led in self.LED_G:
+                    for led in self.green_led:
                         led.off()    
-                    for led in self.LED_R:
+                    for led in self.green_red:
                         led.on()
 
                 old_data = data

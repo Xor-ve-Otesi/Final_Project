@@ -71,6 +71,18 @@ class Ui_MainWindow(object):
         font.setPointSize(20)
         self.H_button.setFont(font)
         self.H_button.setObjectName("H_button")
+        self.Motor_1_text = QtWidgets.QTextEdit(self.centralwidget)
+        self.Motor_1_text.setGeometry(QtCore.QRect(220, 10, 91, 31))
+        self.Motor_1_text.setObjectName("Motor_1_text")
+        self.Motor_2_text = QtWidgets.QTextEdit(self.centralwidget)
+        self.Motor_2_text.setGeometry(QtCore.QRect(360, 10, 91, 31))
+        self.Motor_2_text.setObjectName("Motor_2_text")
+        self.applyButton = QtWidgets.QPushButton(self.centralwidget)
+        self.applyButton.setGeometry(QtCore.QRect(510, 12, 81, 31))
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        self.applyButton.setFont(font)
+        self.applyButton.setObjectName("applyButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 760, 21))
@@ -93,6 +105,7 @@ class Ui_MainWindow(object):
         self.S_button.setText(_translate("MainWindow", "S"))
         self.M_button.setText(_translate("MainWindow", "M"))
         self.H_button.setText(_translate("MainWindow", "H"))
+        self.applyButton.setText(_translate("MainWindow", "APPLY"))
 
 
 if __name__ == "__main__":

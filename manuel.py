@@ -5,7 +5,7 @@ from ui import Ui_MainWindow
 import socket
 from time import sleep
 
-addr = socket.getaddrinfo("192.168.61.141", 1235)[0][-1]
+addr = socket.getaddrinfo("192.168.100.141", 1235)[0][-1]
 ServerSideSocket = socket.socket()
 ServerSideSocket.bind(addr)
 ServerSideSocket.listen(5)
@@ -15,7 +15,6 @@ class Worker(QObject):
     progress = pyqtSignal(int)
 
     def run(self):
-
 
         while True:
             #data = conn.recv(1024).decode()
@@ -52,6 +51,13 @@ class Lab4():
         self.ui.S_cal.clicked.connect(self.calibrate_s)
         self.ui.M_cal.clicked.connect(self.calibrate_m)
         self.ui.H_cal.clicked.connect(self.calibrate_h)
+        self.ui.applyButton.clicked.connect(self.set_hand)
+
+    def set_hand(self):
+        self.ui.Motor1.setValue(self.motor_speed_1)
+        self.ui.Motor2.setValue(self.motor_speed_2)
+        self.motor_speed_1 = float(self.ui.Motor_1_text.toPlainText())
+        self.motor_speed_2 = float(self.ui.Motor_2_text.toPlainText())
 
     def calibrate_s(self):
         self.motor_speed_1_s = self.ui.Motor1.value()

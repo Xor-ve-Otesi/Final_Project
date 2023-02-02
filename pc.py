@@ -30,7 +30,8 @@ class Final():
         self.green_locations = []
         #self.pico = pico.Pico()
         self.green_last = time.time()
-        
+        self.arena_mock = True
+
         broker_add = '192.168.1.102'
 
         self.client = mqtt.Client(f"{self.client_name}")
@@ -60,8 +61,18 @@ class Final():
 
         while True:
             if self.flag:
-                motor1 = 100
-                motor2 = 100
+
+                if self.speed == "S":
+                    motor1 = 100
+                    motor2 = 100
+                
+                if self.speed == "M":
+                    motor1 = 100
+                    motor2 = 100
+                
+                if self.speed == "H":
+                    motor1 = 100
+                    motor2 = 100
                 data = conn.recv(1024).decode()
                 conn.sendall(f"{0},{motor1},{motor2},{self.role}".encode())  # send data to the client
                 time.sleep(0.2)
@@ -73,8 +84,7 @@ class Final():
                 list_send = f"[{self.id}, {self.role}, {self.speed}, {self.points}, (3,2), (3,3), {self.green_left}]"
                 self.client.publish("robotsay", list_send)
                 print(list_send)
-            time.sleep(0.2)
-                
+            time.sleep(0.2)                
 
     def slope(self, x1, y1, x2, y2): # Line slope given two points:
         return (y2-y1)/(x2-x1)
@@ -85,8 +95,7 @@ class Final():
 
     def on_message(self,client, userdata, message, details = False):
         
-        if True:
-        #if message.topic =='arena':
+        if message.topic =='arena':
             #f = open("arena.png", "wb")
             #f.write(message.payload)
             #print(message.topic)
@@ -106,6 +115,10 @@ class Final():
                     cell_value = 3
                 for row, col in cells:
                     self.map[row][col] = cell_value
+
+        if self.arena_mock:
+            pass
+
 
         if True:
             for key in self.mock_data_config:
