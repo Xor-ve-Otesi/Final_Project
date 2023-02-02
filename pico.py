@@ -18,26 +18,28 @@ class Pico():
 
         # TODO Pinleri degistir
         # LED
-        self.green_led = Pin(1, Pin.OUT)
-        self.red_led = Pin(2, Pin.OUT)
+        self.green_led = [Pin(22, Pin.PULL_UP), Pin(21, Pin.PULL_UP), Pin(26, Pin.PULL_UP)]
+        self.red_led = [Pin(28, Pin.PULL_UP), Pin(27, Pin.PULL_UP), Pin(20, Pin.PULL_UP)]
 
         # MOTOR 1
-        self.ena_1 = PWM(Pin(2, Pin.OUT))
+        self.ena_1 = PWM(Pin(0, Pin.OUT))
         self.ena_1.duty_u16(0)
         self.ena_1.freq(1000)
-        self.in1_1 = Pin(4, Pin.OUT)
-        self.in2_1 = Pin(5, Pin.OUT)
+        self.in1_1 = Pin(1, Pin.OUT)
+        self.in2_1 = Pin(2, Pin.OUT)
 
         # MOTOR 2
-        self.ena_2 = PWM(Pin(2, Pin.OUT))
+        self.ena_2 = PWM(Pin(5, Pin.OUT))
+
         self.ena_2.duty_u16(0)
         self.ena_2.freq(1000)
-        self.in1_2 = Pin(4, Pin.OUT)
-        self.in2_2 = Pin(5, Pin.OUT)
+        self.in1_2 = Pin(3, Pin.OUT)
+        self.in2_2 = Pin(4, Pin.OUT)
 
         #"""
         self.direction = 0
-        self.speed = 0
+        self.speed1 = 0
+        self.speed2 = 0
         self.role = 0
 
         self.cl = socket.socket()
@@ -50,39 +52,50 @@ class Pico():
 
             if old_data != data:
                 data = data.split(",")
-                self.direction = data[0]
-                self.speed = data[1]
-                self.role = data[2]
-
+                print(data)
+                self.direction = int(data[0])
+                self.speed1 = int(data[1])
+                self.speed2 = int(data[1])
+                self.role = int(data[2])
                 if int(self.direction) == 90:
-                    self.forward_1()
-                    self.backward_2()
-                    self.ena_1.duty_u16(int(self.speed / 100 * 65536))
-                    self.ena_2.duty_u16(int(self.speed / 100 * 65536))
-
-                elif int(self.direction) == -90:
                     self.backward_1()
                     self.forward_2()
-                    self.ena_1.duty_u16(int(self.speed / 100 * 65536))
-                    self.ena_2.duty_u16(int(self.speed / 100 * 65536))
+                    self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
+                    self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
+
+                elif int(self.direction) == -90:
+                    self.forward_1()
+                    self.backward_2()
+                    self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
+                    self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
 
                 elif int(self.direction) == 0:
                     self.forward_1()
                     self.forward_2()
-                    self.ena_1.duty_u16(int(self.speed / 100 * 65536))
-                    self.ena_2.duty_u16(int(self.speed / 100 * 65536))
+                    self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
+                    self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
+                
+                elif int(self.direction) == -1:
+                    self.backward_1()
+                    self.backward_2()
+                    self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
+                    self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
 
                 else:
                     self.stop_1()
                     self.stop_2()
 
                 if self.role:
-                    self.green_led.value(1)
-                    self.red_led.value(0)
+                    for led in self.LED_G:
+                        led.on()    
+                    for led in self.LED_R:
+                        led.off()
 
                 else:
-                    self.green_led.value(0)
-                    self.red_led.value(1)
+                    for led in self.LED_G:
+                        led.off()    
+                    for led in self.LED_R:
+                        led.on()
 
                 old_data = data
     

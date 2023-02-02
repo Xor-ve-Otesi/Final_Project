@@ -100,5 +100,5 @@ arena = np.array([  [ 0,  0,  0,  0,  0,  0,  0,  0],
                     [-1,  0,  0,  0,  0,  0,  0,  0]])
 
 #find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 8]], [[[[2, 4]], 12], [[[3, 4]], 10]], "PREY")
-find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 12]], [[[[2, 4]], 8], [[[3, 4]], 10]], "PREDATOR")
-print("Path:", find.path)
+#find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 12]], [[[[2, 4]], 8], [[[3, 4]], 10]], "PREDATOR")
+#print("Path:", find.path)
