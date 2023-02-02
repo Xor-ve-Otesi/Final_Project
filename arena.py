@@ -8,7 +8,11 @@ https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lowe
 class ArenaFinder():
 
     def __init__(self) -> None:
-        self.arena_raw = cv2.imread("arena.jpeg")
+        try:
+            self.arena_raw = cv2.imread("arena.png")
+        except:
+            self.arena_raw = cv2.imread("arena.jpeg")
+
         self.hsv = cv2.cvtColor(self.arena_raw, cv2.COLOR_BGR2HSV)
         self.kernel_3 = np.ones((3, 3), np.uint8)
         self.kernel_5 = np.ones((5, 5), np.uint8)

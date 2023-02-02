@@ -54,10 +54,10 @@ class Lab4():
         self.ui.applyButton.clicked.connect(self.set_hand)
 
     def set_hand(self):
+        self.motor_speed_1 = int(self.ui.Motor_1_text.toPlainText())
+        self.motor_speed_2 = int(self.ui.Motor_2_text.toPlainText())
         self.ui.Motor1.setValue(self.motor_speed_1)
         self.ui.Motor2.setValue(self.motor_speed_2)
-        self.motor_speed_1 = float(self.ui.Motor_1_text.toPlainText())
-        self.motor_speed_2 = float(self.ui.Motor_2_text.toPlainText())
 
     def calibrate_s(self):
         self.motor_speed_1_s = self.ui.Motor1.value()
@@ -110,8 +110,8 @@ class Lab4():
         self.thread.start()
 
     def reportProgress(self,num):
-        conn.sendall(f"0,{self.motor_speed_1},{self.motor_speed_2},0".encode())
-        print(f"0,{self.motor_speed_1},{self.motor_speed_2},0")
+        conn.sendall(f"0,{self.motor_speed_1},{self.motor_speed_2},{self.motor_speed_1%2}".encode())
+        print(f"0,{self.motor_speed_1},{self.motor_speed_2},{self.motor_speed_1%2}")
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

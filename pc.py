@@ -31,6 +31,9 @@ class Final():
         #self.pico = pico.Pico()
         self.green_last = time.time()
         self.arena_mock = True
+        self.is_start = False
+        self.motor1_speed = 0
+        self.motor2_speed = 0
 
         broker_add = '192.168.1.102'
 
@@ -62,19 +65,24 @@ class Final():
         while True:
             if self.flag:
 
-                if self.speed == "S":
-                    motor1 = 100
-                    motor2 = 100
+                if self.speed == "S" and self.is_start:
+                    self.motor1_speed = 100
+                    self.motor2_speed = 100
                 
-                if self.speed == "M":
-                    motor1 = 100
-                    motor2 = 100
+                elif self.speed == "M" and self.is_start:
+                    self.motor1_speed = 100
+                    self.motor2_speed = 100
                 
-                if self.speed == "H":
-                    motor1 = 100
-                    motor2 = 100
+                elif self.speed == "H" and self.is_start:
+                    self.motor1_speed = 100
+                    self.motor2_speed = 100
+                
+                else:
+                    self.motor1_speed = 0
+                    self.motor2_speed = 0
+                
                 data = conn.recv(1024).decode()
-                conn.sendall(f"{0},{motor1},{motor2},{self.role}".encode())  # send data to the client
+                conn.sendall(f"{0},{self.motor1_speed},{self.motor2_speed},{self.role}".encode())  # send data to the client
                 time.sleep(0.2)
 
     def mqqt_send(self):
@@ -96,11 +104,10 @@ class Final():
     def on_message(self,client, userdata, message, details = False):
         
         if message.topic =='arena':
-            #f = open("arena.png", "wb")
-            #f.write(message.payload)
-            #print(message.topic)
-            #print("pict obtained")
-            #f.close()
+            self.arena_mock = False
+            f = open("arena.png", "wb")
+            f.write(message.payload)
+            f.close()
             self.arena = arena.ArenaFinder()
             self.grid = self.arena()
             for color, cells in self.grid.items():
@@ -117,8 +124,20 @@ class Final():
                     self.map[row][col] = cell_value
 
         if self.arena_mock:
-            pass
-
+            self.arena = arena.ArenaFinder()
+            self.grid = self.arena()
+            for color, cells in self.grid.items():
+                if color == "blue":
+                    cell_value = 1
+                elif color == "yellow":
+                    cell_value = 2
+                elif color == "red":
+                    cell_value = -1
+                elif color == "green":
+                    self.green_locations.append(cells)
+                    cell_value = 3
+                for row, col in cells:
+                    self.map[row][col] = cell_value
 
         if True:
             for key in self.mock_data_config:
@@ -151,27 +170,22 @@ class Final():
                 self.current_role = 1 # PREY
                 self.role = self.roles[self.current_role]
 
-
         if message.topic =='tick':
-            #print(message.topic)
-            print(message.payload)
             self.remaining_time = message.payload
 
         if message.topic =='start':
-            print(message.topic)
-            print(message.payload)
+
             if "GO":
-                pass
+                self.is_start = True
 
             if "PAUSE":
-                pass
+                self.is_start = False
 
             if "STOP":
-                pass
+                self.is_start = False
 
         if message.topic =='stats':
-            #print(message.topic)
-            #print(type(eval(message.payload.decode())))
+
             self.enemy_pos = []
             self.ally_pos = []
             self.green_left = self.green_timeout - (time.time() - self.green_last)
