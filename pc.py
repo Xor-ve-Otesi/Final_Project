@@ -18,7 +18,7 @@ class Final():
         self.mock_data_stats = [{'ID':9, 'POS':[[500,170],[500, 230],[600,230],[600,170]]}, {'ID':12, 'POS':[[300,160],[340, 160],[340,200],[300,200]]}]
         self.mock_data_config = {"PREDATOR":[-10, 10, "H", "S", [8, 9, 10, 11]], "PREY":[10, -10, "M", "H", [12, 13, 14, 15]], "TIMEOUT":15 }
         self.id = 8
-        self.arena_dim = [600,450]
+        self.arena_dim = [640,480]
         self.roles = ['PREDATOR', 'PREY']
         self.cell_width = self.arena_dim[0]/8
         self.cell_height = self.arena_dim[1]/6
@@ -56,7 +56,7 @@ class Final():
 
     def socket_send(self):
         
-        addr = socket.getaddrinfo("192.168.1.102", 1236)[0][-1]
+        addr = socket.getaddrinfo("192.168.1.102", 1235)[0][-1]
         ServerSideSocket = socket.socket()
         ServerSideSocket.bind(addr)
         ServerSideSocket.listen(5)
@@ -94,7 +94,7 @@ class Final():
                 print(list_send)
             time.sleep(0.2)                
 
-    def slope(self, x1, y1, x2, y2): # Line slope given two points:
+    def slope(self, x1, y1, x2, y2):
         return (y2-y1)/(x2-x1)
 
     def angle(self, s1, s2): 
@@ -104,6 +104,7 @@ class Final():
     def on_message(self,client, userdata, message, details = False):
         
         if message.topic =='arena':
+            print("arena")
             self.arena_mock = False
             f = open("arena.png", "wb")
             f.write(message.payload)
@@ -161,13 +162,13 @@ class Final():
             if self.id in self.pred:
                 self.ally = self.pred
                 self.enemy = self.prey
-                self.current_role = 0 # PREDATOR
+                self.current_role = 0
                 self.role = self.roles[self.current_role]
 
             if self.id in self.prey:
                 self.ally = self.prey
                 self.enemy = self.pred
-                self.current_role = 1 # PREY
+                self.current_role = 1
                 self.role = self.roles[self.current_role]
 
         if message.topic =='tick':

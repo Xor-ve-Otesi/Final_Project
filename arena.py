@@ -10,10 +10,11 @@ class ArenaFinder():
     def __init__(self) -> None:
         try:
             self.arena_raw = cv2.imread("arena.png")
+            self.hsv = cv2.cvtColor(self.arena_raw, cv2.COLOR_BGR2HSV)
         except:
             self.arena_raw = cv2.imread("arena.jpeg")
+            self.hsv = cv2.cvtColor(self.arena_raw, cv2.COLOR_BGR2HSV)
 
-        self.hsv = cv2.cvtColor(self.arena_raw, cv2.COLOR_BGR2HSV)
         self.kernel_3 = np.ones((3, 3), np.uint8)
         self.kernel_5 = np.ones((5, 5), np.uint8)
         self.kernel_7 = np.ones((7, 7), np.uint8)
@@ -21,7 +22,7 @@ class ArenaFinder():
         self.grid_loc = {"blue":[],"green":[],"yellow":[],"red":[]}
         self.color_bgr = {"blue":(255,0,0),"green":(0,255,9),"yellow":(0,255,255),"red":(0,0,255)}
         self.color_segmentation(np.array([80, 138, 0]), np.array([163, 255, 184]), "blue")
-        self.color_segmentation(np.array([58, 138, 0]), np.array([67, 255, 184]), "green")
+        self.color_segmentation(np.array([40, 138, 0]), np.array([90, 255, 184]), "green")
         self.color_segmentation(np.array([14, 138, 0]), np.array([31, 255, 184]), "yellow")
         self.color_segmentation(np.array([0, 138, 0]), np.array([20, 255, 184]), "red", np.array([150, 138, 0]), np.array([179, 255, 184]))
         
@@ -50,7 +51,7 @@ class ArenaFinder():
 
         result = cv2.bitwise_and(self.arena_raw , self.arena_raw , mask=mask)
         gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
-        erode = cv2.erode(gray, self.kernel_3)
+        erode = cv2.erode(gray, self.kernel_3,iterations=1)
         dil = cv2.dilate(erode, self.kernel_5, iterations=2)
         erode = cv2.erode(dil, self.kernel_5, iterations=3)
 
