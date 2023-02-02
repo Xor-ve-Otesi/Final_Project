@@ -11,7 +11,6 @@ ServerSideSocket.bind(addr)
 ServerSideSocket.listen(5)
 conn, address = ServerSideSocket.accept()  # accept new connection
 
-Step 1: Create a worker class
 class Worker(QObject):
     progress = pyqtSignal(int)
 
