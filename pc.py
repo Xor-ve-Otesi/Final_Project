@@ -1,10 +1,11 @@
 import arena
-import path_finder
+from path_finder import path_finder
 import threading
 import time
 import socket
 #import pico
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt2
+from paho import mqtt
 import sys
 import os
 import numpy as np
@@ -18,7 +19,7 @@ class Final():
         self.is_path_ready = True
         self.mock_data_stats = [{'ID':9, 'POS':[[500,170],[500, 230],[600,230],[600,170]]}, {'ID':12, 'POS':[[300,160],[340, 160],[340,200],[300,200]]}]
         self.mock_data_config = {"PREDATOR":[-10, 10, "H", "S", [8, 9, 10, 11]], "PREY":[10, -10, "M", "H", [12, 13, 14, 15]], "TIMEOUT":15 }
-        self.id = 9
+        self.id = 8
         self.arena_dim = [640,480]
         self.roles = ['PREDATOR', 'PREY']
         self.cell_width = self.arena_dim[0]/8
@@ -39,9 +40,9 @@ class Final():
         self.goal_reached = True
         broker_add = '192.168.1.102'
         self.goal = ""
-        self.client = mqtt.Client(f"{self.client_name}")
+        self.client = mqtt2.Client(f"{self.client_name}")
         self.client.on_message=self.on_message
-
+        #self.current_pos = [[0,0]]
         self.client.connect(broker_add) #connect to broker
         self.client.loop_start() #start the loop
         self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0),("start",0)])
@@ -50,15 +51,15 @@ class Final():
         self.pc2main = threading.Thread(target=self.mqqt_send)
         #self.path2pc = threading.Thread(target=self.path_pc)
         #self.main2pc = threading.Thread(target=self.mqqt_recieve)
-        self.pc2pico = threading.Thread(target=self.socket_send)
+        #self.pc2pico = threading.Thread(target=self.socket_send)
         self.pc2main.start()
         #self.path2pc.start()
         #self.main2pc.start()
-        self.pc2pico.start()
+        #self.pc2pico.start()
         self.pc2main.join()
         #self.path2pc.join()
         #self.main2pc.join()
-        self.pc2pico.join()
+        #self.pc2pico.join()
 
 
     def dot(self,vA, vB):
@@ -82,9 +83,8 @@ class Final():
 
     def socket_send(self):
         
-        import paho.mqtt.client as paho
         pico_broker_add = '399ce100582845b88e4faf98d82e6735.s2.eu.hivemq.cloud'
-        pico_client = paho.Client(client_id ='xorveotesiss',userdata=None, protocol=paho.MQTTv5)
+        pico_client = mqtt2.Client(client_id ='xorveotesiss',userdata=None, protocol=mqtt2.MQTTv5)
 
         pico_client.username_pw_set("picomqtt", "123pico.")
         pico_client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -110,14 +110,14 @@ class Final():
                     self.motor1_speed = 0
                     self.motor2_speed = 0
                 
-                pico_client.publish('robot', payload=f"{self.direction},{self.motor1_speed},{self.motor2_speed},{self.motor2_speed%2}",qos=1)
+                pico_client.publish('robot', payload=f"{self.direction},{self.motor1_speed},{self.motor2_speed},{self.role}",qos=1)
                 time.sleep(0.05)
 
     def mqqt_send(self):
         while True:
             if self.flag:
 
-                list_send = f"[{self.id}, {self.role}, {self.speed}, {self.points}, {self.current}, {self.goal}, {self.green_left}]"
+                list_send = f"[{self.id}, {self.role}, {self.speed}, {self.points}, {self.current_pos}, {self.goal}, {self.green_left}]"
                 self.client.publish("robotsay", list_send)
                 #print(list_send)
             time.sleep(0.2)                
@@ -199,7 +199,7 @@ class Final():
                 self.enemy = self.pred
                 self.current_role = 1
                 self.role = self.roles[self.current_role]
-
+            print(self.pred, self.prey)
 
         if message.topic =='config':
             self.config = ast.literal_eval(message.payload.decode())
@@ -234,7 +234,7 @@ class Final():
                 self.enemy = self.pred.copy()
                 self.current_role = 1
                 self.role = self.roles[self.current_role]
-            print(self.ally, self.enemy)
+            #print(self.ally, self.enemy)
 
         if message.topic =='tick':
             self.remaining_time = message.payload
@@ -305,6 +305,9 @@ class Final():
                 self.goal_reached = True
 
             if self.goal_reached:
+                #print(self.map)
+                #print(self.pred_pos, 21)
+                #print(self.prey_pos, 22)
                 self.find = path_finder(self.map, self.prey_pos, self.pred_pos, self.role)
                 self.goal = self.find.path[1]
                 self.goal_reached = False
@@ -331,7 +334,7 @@ class Final():
                     cy_f = int((data["POS"][0][1] + data["POS"][1][1]) / 2)
                     front = [cx_f, cy_f]
 
-                    self.angle  = self.ang([[pos[0], pos[1]], [front[0], front[1]]],[[pos[0], pos[1]], [target_loc[0], target_loc[1]]])
+                    self.angles  = self.ang([[pos[0], pos[1]], [front[0], front[1]]],[[pos[0], pos[1]], [target_loc[0], target_loc[1]]])
 
                     print(pos,front,target_loc)
 
@@ -375,7 +378,11 @@ class Final():
                         else:
                             self.turn_direction = "right"
 
-                    print(self.direction,self.turn_direction,self.angle)
+                    print(f"{self.angles} angle to {self.turn_direction}")
+                    if self.turn_direction == "left":
+                        self.direction == 90
+                    if self.turn_direction == "right":
+                        self.direction == -90
                     #self.goal_reached = True
 
 

@@ -9,7 +9,7 @@ class path_finder:
         self.predator_locations = []
         self.our_location = []
         self.our_role = role
-        self.row, self.col = map.shape
+        self.row, self.col = self.arena.shape
         self.directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         self.goal = (-1, -1)
         self.path = []
@@ -99,6 +99,8 @@ arena = np.array([  [ 0,  0,  0,  0,  0,  0,  0,  0],
                     [ 0,  0,  1,  0,  0, -1,  0, -1],
                     [-1,  0,  0,  0,  0,  0,  0,  0]])
 
-#find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 8]], [[[[2, 4]], 12], [[[3, 4]], 10]], "PREY")
-#find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 12]], [[[[2, 4]], 8], [[[3, 4]], 10]], "PREDATOR")
-#print("Path:", find.path)
+find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 8]], [[[[2, 4]], 12], [[[3, 4]], 10]], "PREY")
+print("Path:", find.path)
+
+find = path_finder(arena, [[[[2, 6]], 9], [[[0, 0]], 12]], [[[[2, 4]], 8], [[[3, 4]], 10]], "PREDATOR")
+print("Path:", find.path)

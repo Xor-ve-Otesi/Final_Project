@@ -34,12 +34,12 @@ class Lab4():
         self.button_initiator()
         self.motor_speed_1 = 0
         self.motor_speed_2 = 0
-        self.motor_speed_1_s = 0
-        self.motor_speed_2_s = 0
-        self.motor_speed_1_m = 0
-        self.motor_speed_2_m = 0
-        self.motor_speed_1_h = 0
-        self.motor_speed_2_h = 0
+        self.motor_speed_1_s = 40
+        self.motor_speed_2_s = 40
+        self.motor_speed_1_m = 60
+        self.motor_speed_2_m = 60
+        self.motor_speed_1_h = 75
+        self.motor_speed_2_h = 75
         self.ui.Motor1.setMaximum(100)
         self.ui.Motor2.setMaximum(100)
         self.direction = 2
