@@ -18,7 +18,7 @@ class Pico():
 
         # TODO Pinleri degistir
         # LED
-        self.green_led = [Pin(22, Pin.PULL_UP), Pin(21, Pin.PULL_UP), Pin(26, Pin.PULL_UP)]
+        self.green_led = [Pin(19, Pin.PULL_UP), Pin(21, Pin.PULL_UP), Pin(26, Pin.PULL_UP)]
         self.red_led = [Pin(28, Pin.PULL_UP), Pin(27, Pin.PULL_UP), Pin(20, Pin.PULL_UP)]
 
         # MOTOR 1

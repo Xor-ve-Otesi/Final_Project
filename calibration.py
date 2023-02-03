@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from ui import Ui_MainWindow
 import socket
 from time import sleep
+broker_add2 = '399ce100582845b88e4faf98d82e6735.s2.eu.hivemq.cloud'
 
 addr = socket.getaddrinfo("192.168.100.141", 1235)[0][-1]
 ServerSideSocket = socket.socket()

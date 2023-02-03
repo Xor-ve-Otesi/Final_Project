@@ -73,14 +73,14 @@ class path_finder:
 
         if self.our_role == "PREY":
             min_distance = float('inf')
-            for i in range(self.map.shape[0]):
-                for j in range(self.map.shape[1]):
-                    if self.map[i][j] == 3:
-                        distance = self.find_path((i, j))
+            for i in range(self.arena.shape[0]):
+                for j in range(self.arena.shape[1]):
+                    if self.arena[i][j] == 3:
+                        distance,path = self.find_path((i, j))
                         if distance < min_distance:
                             min_distance = distance
                             self.goal = (i, j)
-            self.path = self.find_path(self.goal())
+            length ,self.path = self.find_path(self.goal)
 
         elif self.our_role == "PREDATOR":
             prey_distances = []
