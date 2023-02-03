@@ -38,98 +38,27 @@ class Final():
         self.motor2_speed = 0
         self.goal_reached = True
         broker_add = '192.168.1.102'
-
+        self.goal = ""
         self.client = mqtt.Client(f"{self.client_name}")
         self.client.on_message=self.on_message
 
         self.client.connect(broker_add) #connect to broker
         self.client.loop_start() #start the loop
-        self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0)])
+        self.client.subscribe([("arena",0),("tick",0),("config",0), ("stats",0),("start",0)])
+
 
         self.pc2main = threading.Thread(target=self.mqqt_send)
-        self.path2pc = threading.Thread(target=self.path_pc)
+        #self.path2pc = threading.Thread(target=self.path_pc)
         #self.main2pc = threading.Thread(target=self.mqqt_recieve)
-        #self.pc2pico = threading.Thread(target=self.socket_send)
+        self.pc2pico = threading.Thread(target=self.socket_send)
         self.pc2main.start()
-        self.path2pc.start()
+        #self.path2pc.start()
         #self.main2pc.start()
-        #self.pc2pico.start()
+        self.pc2pico.start()
         self.pc2main.join()
-        self.path2pc.join()
+        #self.path2pc.join()
         #self.main2pc.join()
-        #self.pc2pico.join()
-
-    def path_pc(self):
-        while True:
-            if not self.goal_reached:
-                current_loc = self.find.our_location
-                target_top = [0,1]
-                target_bottom = [2,1]
-                target_left = [1,0]
-                target_right = [1,2]
-
-                target = self.find.path[1]
-                target_loc = [int((target[1]+0.5)*self.cell_width),int((target[0]+0.5)*self.cell_height)]
-                
-                self.direction = 0
-                self.turn_direction = 0
-
-                for data in self.mock_data_stats:
-                    cx = int((data["POS"][0][0] + data["POS"][2][0]) / 2)
-                    cy = int((data["POS"][0][1] + data["POS"][2][1]) / 2)
-                    pos = [int((current_loc[1]+0.5)*self.cell_width),int((current_loc[0]+0.5)*self.cell_height)]
-
-                    cx_f = int((data["POS"][0][0] + data["POS"][1][0]) / 2)
-                    cy_f = int((data["POS"][0][1] + data["POS"][1][1]) / 2)
-                    front = [cx_f, cy_f]
-                    front = [360,160]
-
-                    self.angle  = self.ang([[pos[0], pos[1]], [front[0], front[1]]],[[pos[0], pos[1]], [target_loc[0], target_loc[1]]])
-
-                    print(pos,front,target_loc)
-
-
-                    if (current_loc[0] - target[0]) ==1 and  (current_loc[1] - target[1])==0:
-                        self.direction = "top"
-
-                    elif (current_loc[0] - target[0]) ==-1 and  (current_loc[1] - target[1])==0:
-                        self.direction = "bottom"
-
-                    elif (current_loc[0] - target[0]) ==0 and  (current_loc[1] - target[1])==1:
-                        self.direction = "left"
-
-                    elif (current_loc[0] - target[0]) ==0 and  (current_loc[1] - target[1])== -1:
-                        self.direction = "right"
-                    
-                    else:
-                        print("invalid target")
-
-                    if self.direction == "top":
-                        if front[0]>=target_loc[0]:
-                            self.turn_direction = "left"
-                        else:
-                            self.turn_direction = "right"
-
-                    if self.direction == "bottom":
-                        if front[0]>=target_loc[0]:
-                            self.turn_direction = "right"
-                        else:
-                            self.turn_direction = "left"
-
-                    if self.direction == "left":
-                        if front[1]>=target_loc[1]:
-                            self.turn_direction = "right"
-                        else:
-                            self.turn_direction = "left"
-
-                    if self.direction == "right":
-                        if front[1]>=target_loc[1]:
-                            self.turn_direction = "left"
-                        else:
-                            self.turn_direction = "right"
-
-                    print(self.direction,self.turn_direction,self.angle)
-                    self.goal_reached = True
+        self.pc2pico.join()
 
 
     def dot(self,vA, vB):
@@ -153,11 +82,14 @@ class Final():
 
     def socket_send(self):
         
-        addr = socket.getaddrinfo("192.168.1.102", 1235)[0][-1]
-        ServerSideSocket = socket.socket()
-        ServerSideSocket.bind(addr)
-        ServerSideSocket.listen(5)
-        conn, address = ServerSideSocket.accept()
+        import paho.mqtt.client as paho
+        pico_broker_add = '399ce100582845b88e4faf98d82e6735.s2.eu.hivemq.cloud'
+        pico_client = paho.Client(client_id ='xorveotesiss',userdata=None, protocol=paho.MQTTv5)
+
+        pico_client.username_pw_set("picomqtt", "123pico.")
+        pico_client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+        pico_client.connect(pico_broker_add,8883) #connect to broker
+        pico_client.loop_start()
 
         while True:
             if self.flag:
@@ -178,15 +110,14 @@ class Final():
                     self.motor1_speed = 0
                     self.motor2_speed = 0
                 
-                data = conn.recv(1024).decode()
-                conn.sendall(f"{0},{self.motor1_speed},{self.motor2_speed},{self.role}".encode())  # send data to the client
-                time.sleep(0.2)
+                pico_client.publish('robot', payload=f"{self.direction},{self.motor1_speed},{self.motor2_speed},{self.motor2_speed%2}",qos=1)
+                time.sleep(0.05)
 
     def mqqt_send(self):
         while True:
             if self.flag:
 
-                list_send = f"[{self.id}, {self.role}, {self.speed}, {self.points}, (3,2), (3,3), {self.green_left}]"
+                list_send = f"[{self.id}, {self.role}, {self.speed}, {self.points}, {self.current}, {self.goal}, {self.green_left}]"
                 self.client.publish("robotsay", list_send)
                 #print(list_send)
             time.sleep(0.2)                
@@ -327,8 +258,10 @@ class Final():
             if self.green_left < 0:
                 self.green_left = 0
                 self.green_available = True
-            #print(eval(message.payload.decode()))
-            for data in eval(message.payload.decode()):
+            self.stats_data = eval(message.payload.decode())
+            print(self.stats_data)
+
+            for data in self.stats_data:
                 cx = int((data["POS"][0][0] + data["POS"][2][0]) / 2)
                 cy = int((data["POS"][0][1] + data["POS"][2][1]) / 2)
                 pos = [[int(cy/self.cell_height),int(cx/self.cell_width)]]
@@ -343,6 +276,7 @@ class Final():
                     self.role = self.roles[self.current_role]
 
                 if data["ID"] == self.id:
+                    self.current_pos = pos
                     if pos in self.grid["yellow"]:
                         if self.role == "PREDATOR":
                             self.speed = self.yellow_speed_pred
@@ -367,12 +301,85 @@ class Final():
                 if data["ID"] in self.prey:
                     self.prey_pos.append([pos, data["ID"]])
 
-                if self.goal_reached:
-                    self.find = path_finder(self.map, self.prey_pos, self.pred_pos, self.role)
-                    self.goal = self.find.path[1]
-                    self.current = self.find.our_location
-                    self.goal_reached = False
+            if self.goal == self.current_pos:
+                self.goal_reached = True
+
+            if self.goal_reached:
+                self.find = path_finder(self.map, self.prey_pos, self.pred_pos, self.role)
+                self.goal = self.find.path[1]
+                self.goal_reached = False
+
+            if not self.goal_reached:
+                current_loc = self.current_pos
+                # target_top = [0,1]
+                # target_bottom = [2,1]
+                # target_left = [1,0]
+                # target_right = [1,2]
+
+                target = self.find.path[1]
+                target_loc = [int((target[1]+0.5)*self.cell_width),int((target[0]+0.5)*self.cell_height)]
+                
+                self.direction = 0
+                self.turn_direction = 0
+
+                for data in self.mock_data_stats:
+                    cx = int((data["POS"][0][0] + data["POS"][2][0]) / 2)
+                    cy = int((data["POS"][0][1] + data["POS"][2][1]) / 2)
+                    pos = [int((current_loc[1]+0.5)*self.cell_width),int((current_loc[0]+0.5)*self.cell_height)]
+
+                    cx_f = int((data["POS"][0][0] + data["POS"][1][0]) / 2)
+                    cy_f = int((data["POS"][0][1] + data["POS"][1][1]) / 2)
+                    front = [cx_f, cy_f]
+
+                    self.angle  = self.ang([[pos[0], pos[1]], [front[0], front[1]]],[[pos[0], pos[1]], [target_loc[0], target_loc[1]]])
+
+                    print(pos,front,target_loc)
+
+
+                    if (current_loc[0] - target[0]) ==1 and  (current_loc[1] - target[1])==0:
+                        self.direction = "top"
+
+                    elif (current_loc[0] - target[0]) ==-1 and  (current_loc[1] - target[1])==0:
+                        self.direction = "bottom"
+
+                    elif (current_loc[0] - target[0]) ==0 and  (current_loc[1] - target[1])==1:
+                        self.direction = "left"
+
+                    elif (current_loc[0] - target[0]) ==0 and  (current_loc[1] - target[1])== -1:
+                        self.direction = "right"
                     
+                    else:
+                        print("invalid target")
+
+                    if self.direction == "top":
+                        if front[0]>=target_loc[0]:
+                            self.turn_direction = "left"
+                        else:
+                            self.turn_direction = "right"
+
+                    if self.direction == "bottom":
+                        if front[0]>=target_loc[0]:
+                            self.turn_direction = "right"
+                        else:
+                            self.turn_direction = "left"
+
+                    if self.direction == "left":
+                        if front[1]>=target_loc[1]:
+                            self.turn_direction = "right"
+                        else:
+                            self.turn_direction = "left"
+
+                    if self.direction == "right":
+                        if front[1]>=target_loc[1]:
+                            self.turn_direction = "left"
+                        else:
+                            self.turn_direction = "right"
+
+                    print(self.direction,self.turn_direction,self.angle)
+                    #self.goal_reached = True
+
+
+
             #print(self.enemy_pos)
             #print(self.ally_pos)
 

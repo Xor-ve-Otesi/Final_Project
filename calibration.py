@@ -2,15 +2,18 @@ import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from ui import Ui_MainWindow
-import socket
 from time import sleep
-broker_add2 = '399ce100582845b88e4faf98d82e6735.s2.eu.hivemq.cloud'
+from paho import mqtt
+import keyboard
 
-addr = socket.getaddrinfo("192.168.100.141", 1235)[0][-1]
-ServerSideSocket = socket.socket()
-ServerSideSocket.bind(addr)
-ServerSideSocket.listen(5)
-conn, address = ServerSideSocket.accept()  # accept new connection
+import paho.mqtt.client as paho
+broker_add = '399ce100582845b88e4faf98d82e6735.s2.eu.hivemq.cloud'
+client = paho.Client(client_id ='xorveotesiss',userdata=None, protocol=paho.MQTTv5)
+
+client.username_pw_set("picomqtt", "123pico.")
+client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+client.connect(broker_add,8883) #connect to broker
+client.loop_start()
 
 class Worker(QObject):
     progress = pyqtSignal(int)
@@ -21,7 +24,6 @@ class Worker(QObject):
             #data = conn.recv(1024).decode()
             sleep(0.2)
             self.progress.emit(0)
-
 
 class Lab4():
     def __init__(self) -> None:
@@ -40,6 +42,7 @@ class Lab4():
         self.motor_speed_2_h = 0
         self.ui.Motor1.setMaximum(100)
         self.ui.Motor2.setMaximum(100)
+        self.direction = 2
         self.runLongTask()
 
     def button_initiator(self):
@@ -53,6 +56,22 @@ class Lab4():
         self.ui.M_cal.clicked.connect(self.calibrate_m)
         self.ui.H_cal.clicked.connect(self.calibrate_h)
         self.ui.applyButton.clicked.connect(self.set_hand)
+        keyboard.on_press_key("up", self.handle_arrow_keys, suppress=True)
+        keyboard.on_press_key("down", self.handle_arrow_keys, suppress=True)
+        keyboard.on_press_key("left", self.handle_arrow_keys, suppress=True)
+        keyboard.on_press_key("right", self.handle_arrow_keys, suppress=True)
+
+    def handle_arrow_keys(self,e):
+        if e.name == 'up':
+            self.direction = 0
+        if e.name == 'down':
+            self.direction = -1
+        elif e.name == 'left':
+            self.direction = -90
+        elif e.name == 'right':
+            self.direction = 90
+        elif e.name == 'space':
+            self.stopping() 
 
     def set_hand(self):
         self.motor_speed_1 = int(self.ui.Motor_1_text.toPlainText())
@@ -111,8 +130,8 @@ class Lab4():
         self.thread.start()
 
     def reportProgress(self,num):
-        conn.sendall(f"0,{self.motor_speed_1},{self.motor_speed_2},{self.motor_speed_1%2}".encode())
-        print(f"0,{self.motor_speed_1},{self.motor_speed_2},{self.motor_speed_1%2}")
+        client.publish('robot', payload=f"{self.direction},{self.motor_speed_1},{self.motor_speed_2},{self.motor_speed_1%2}",qos=1)
+        print(f"{self.direction},{self.motor_speed_1},{self.motor_speed_2},{self.motor_speed_1%2}")
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

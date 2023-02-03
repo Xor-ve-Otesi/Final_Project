@@ -36,7 +36,7 @@ class Pico():
         self.in2_2 = Pin(4, Pin.OUT)
 
         #"""
-        self.direction = 0
+        self.direction = 40
         self.speed1 = 0
         self.speed2 = 0
         self.role = 0
@@ -61,24 +61,36 @@ class Pico():
                     self.forward_2()
                     self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
                     self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
+                    time.sleep(0.2)
+                    self.stop_1()
+                    self.stop_2()
 
                 elif int(self.direction) == -90:
                     self.forward_1()
                     self.backward_2()
                     self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
                     self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
+                    time.sleep(0.2)
+                    self.stop_1()
+                    self.stop_2()
 
                 elif int(self.direction) == 0:
                     self.forward_1()
                     self.forward_2()
                     self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
                     self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
-                
+                    time.sleep(0.2)
+                    self.stop_1()
+                    self.stop_2()
+
                 elif int(self.direction) == -1:
                     self.backward_1()
                     self.backward_2()
                     self.ena_1.duty_u16(int(self.speed1 / 100 * 65536))
                     self.ena_2.duty_u16(int(self.speed2 / 100 * 65536))
+                    time.sleep(0.2)
+                    self.stop_1()
+                    self.stop_2()
 
                 else:
                     self.stop_1()
